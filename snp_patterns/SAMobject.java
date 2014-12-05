@@ -48,6 +48,9 @@ class SAMobject{
 				
 			}
 			bufRead.close();
+			for(String id: SNPpatterns.keySet()){
+				System.out.println(SNPpatterns.get(id).get_ID()+"~"+SNPpatterns.get(id).get_count());
+			}
 		}catch (Exception e){
 			System.out.println("Error reading SAM file: " + e.toString());
 		}
@@ -95,7 +98,7 @@ class SAMobject{
 			ArrayList<String> ops_arraylist = new ArrayList<String>();
 			for(int i=0; i<operation_tokens.length; ++i){
 				if((!operation_tokens[i].equals("")) && (!(operation_tokens[i]==null))){
-					System.out.println("adding op: "+operation_tokens[i]);
+					//System.out.println("adding op: "+operation_tokens[i]);
 					ops_arraylist.add(operation_tokens[i]);
 				}
 			}
@@ -155,9 +158,6 @@ class SAMobject{
 							{
 								//reference pos is one based but 
 								//the iterator is 0-based
-								System.out.println("rname: "+rName);
-								System.out.println("ref base: "+reference.charAt(position_in_reference));
-								System.out.println("seq base: "+sequence.charAt(position_in_sequence));
 								pattern.addSNP(position_in_reference+1, reference.charAt(position_in_reference), sequence.charAt(position_in_sequence));
 							}
 							position_in_reference +=1;		
@@ -180,6 +180,12 @@ class SAMobject{
 				}
 			}
 			if(success && pattern.has_SNPs()){
+				if(SNPpatterns.containsKey(pattern.get_ID())){
+					SNPpatterns.get(pattern.get_ID()).increment_count();
+				}
+				else{
+					SNPpatterns.put(pattern.get_ID(), pattern);
+				}
 				System.out.println("SNP pattern: "+pattern.get_ID());
 			}
 			
