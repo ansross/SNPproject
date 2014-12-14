@@ -12,7 +12,7 @@ class CompareFreqsMain{
                                 num_files = Integer.parseInt(args[++i]);
                         }
                         else if(args[i].equals("-F")){
-                                must define number of files before providing files
+                                //must define number of files before providing files
                                 if(num_files == 0){
                                         break;
                                 }
@@ -29,7 +29,9 @@ class CompareFreqsMain{
                         System.out.println("java snp_pattern.CompareSNPpatterns -N <number_of_files> -F <N file names> -O <output file name>");
                         System.exit(-1);
                 }
-		ComparePatternFreqs comp_freq = new ComparePatternFreqs()
+		ComparePatternFreqs comp_freq = new ComparePatternFreqs(num_files, pattern_files);
+		comp_freq.parsePatternFiles();
+		comp_freq.printFrequencies(outfile);
 	}
 }
 

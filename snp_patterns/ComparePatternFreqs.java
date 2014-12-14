@@ -2,7 +2,9 @@ package snp_patterns;
 import java.util.Vector;
 import java.util.HashMap;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.FileReader;
+import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 import java.util.Scanner;
 import java.nio.file.Path;
@@ -22,6 +24,24 @@ class ComparePatternFreqs{
 		pattern_files = pattern_files_arg;
 		SAM_file_names = new String[num_files];
 	}
+
+	public void printFrequencies(String outfile){
+		try{
+			System.out.println("Printing results to: "+outfile);
+			PrintWriter writer = new PrintWriter(outfile);
+			writer.print("reference gene\tpattern\t");
+			for(String file: SAM_file_names){
+				writer.print(file+"\t");
+			}
+			writer.println();
+			for(String id: compare_samples.keySet()){
+				writer.println(compare_samples.get(id).to_print());
+			}
+			writer.close();
+			System.out.println("Wrote output");
+		}catch(FileNotFoundException e){
+		}
+	}
 	
 	public void parsePatternFiles(){	
 		for(int fileIter=0; fileIter<pattern_files.size(); ++fileIter){
@@ -35,7 +55,7 @@ class ComparePatternFreqs{
 		
 	}
 
-	private static String parseFile(HashMap<String, SNPCompare> compare_samples, String file_name, int file_num){
+	private String parseFile(HashMap<String, SNPCompare> compare_samples, String file_name, int file_num){
 		System.out.println("Parsing file "+file_num+": "+file_name);
 		String SAM_file=""; 
 		final Charset ENCODING = StandardCharsets.UTF_8;
@@ -58,7 +78,7 @@ class ComparePatternFreqs{
 				int count = Integer.parseInt(pattern_tokens[2]);
 				String id = ref_gene+pattern;
 				if(!compare_samples.containsKey(id)){
-					SNPCompare new_snp = new SNPCompare(num_file, ref_gene, pattern);
+					SNPCompare new_snp = new SNPCompare(num_files, ref_gene, pattern);
 					compare_samples.put(id, new_snp);
 				}
 				SNPCompare comp = compare_samples.get(id);
@@ -81,10 +101,19 @@ class ComparePatternFreqs{
 		String pattern;
 		int[] counts;
 
+
 		public SNPCompare(int num_files, String gene_arg, String pattern_arg){
 			counts = new int[num_files];
 			ref_gene = gene_arg;
 			pattern = pattern_arg;
+		}
+	
+		public String to_print(){
+			String ret_string = ref_gene+"\t"+pattern+"\t";
+			for(int i=0; i<counts.length;++i){
+				ret_string = ret_string +counts[i]+"\t";
+			}
+			return ret_string;
 		}
 
 		public void incrementCount(int file_num){
