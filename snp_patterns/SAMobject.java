@@ -61,17 +61,6 @@ class SAMobject{
 				
 			}
 			bufRead.close();
-			System.out.println("Printing results to file");
-			//Print results to file
-			PrintWriter writer = new PrintWriter(out_filename);
-			writer.println("SAM file: "+SAM_file_name);
-			writer.println("reference gene\t{location_in_reference: nucleotide_in_reference->nucleotide_in_sequence;}\tpattern_frequency");
-			for(String id: SNPpatterns.keySet()){
-				writer.println(SNPpatterns.get(id).to_print());
-				//System.out.println(SNPpatterns.get(id).get_ID()+"~"+SNPpatterns.get(id).get_count());
-			}
-			writer.close();
-			System.out.println("Output written to "+out_filename);
 		}catch (Exception e){
 			System.out.println("Error reading SAM file: " + e.toString());
 		}
@@ -79,6 +68,20 @@ class SAMobject{
 		finally{
 
 		}
+	}
+
+	public void printSNPpatterns(){
+			System.out.println("Printing results to file");
+			//Print results to file
+			PrintWriter writer = new PrintWriter(out_filename);
+			writer.println("@ SAM file: "+SAM_file_name);
+			writer.println("@ reference gene\t{location_in_reference: nucleotide_in_reference->nucleotide_in_sequence;}\tpattern_frequency");
+			for(String id: SNPpatterns.keySet()){
+				writer.println(SNPpatterns.get(id).to_print());
+				//System.out.println(SNPpatterns.get(id).get_ID()+"~"+SNPpatterns.get(id).get_count());
+			}
+			writer.close();
+			System.out.println("Output written to "+out_filename);
 	}
 
 	private void parseAlignment(String [] alignment_fields, int lineCount){
