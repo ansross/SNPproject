@@ -11,26 +11,37 @@ class SAMobject{
 
 	String SAM_file_name;
 	HashMap<String, String> reference_database;	
+	String out_filename;
 
-	public SAMobject(String file_name, HashMap<String, String> ref_database){
+	public SAMobject(String file_name, HashMap<String, String> ref_database, String outfile){
 		SAM_file_name = file_name;
 		SNPpatterns = new HashMap<String, SNPpattern>();
 		reference_database = ref_database;
+		out_filename = outfile;
 	}
 
 	public void parseSAMfile(){
+		
 		//TODO see what if(p.samFilePair.canRead()) in ContigWideStatistics means!!!!
 		String line = "";
 		try{
 			BufferedReader bufRead = new BufferedReader(new FileReader(SAM_file_name));
 			boolean startedSequences = false;
+			int lineCount = 0;
 			while( (line= bufRead.readLine()) != null)
-			{	//read over SAM header lines
+			{	
+				//print progress
+				if(lineCount %5000000 == 0){
+					System.out.println("Parsing line "+lineCount);
+				}
+				//read over SAM header lines
 				if (line.startsWith("@"))
 				{	//if misplaced header, error with SAM file, exit
 					if(startedSequences){
 						System.out.println("ERROR::[SAMobject parseSAMfile] Bad SAM format. ");
+						System.exit(-1);
 					}else{
+						lineCount +=1;
 						continue;
 					}
 				}
@@ -41,16 +52,26 @@ class SAMobject{
 				//parse SAM and check format
 				String [] alignment_section = line.split("\t");
 				// 		TODO exit after error message		
-				if(alignment_section.length < 9)
+				if(alignment_section.length < 9){
 					System.out.println("ERROR::[SAMobject] Bad SAM format");
-				parseAlignment(alignment_section);
-				
+					System.exit(-1);
+				}
+				parseAlignment(alignment_section, lineCount);
+				lineCount += 1;	
 				
 			}
 			bufRead.close();
+			System.out.println("Printing results to file");
+			//Print results to file
+			PrintWriter writer = new PrintWriter(out_filename);
+			writer.println("SAM file: "+SAM_file_name);
+			writer.println("reference gene\t{location_in_reference: nucleotide_in_reference->nucleotide_in_sequence;}\tpattern_frequency");
 			for(String id: SNPpatterns.keySet()){
-				System.out.println(SNPpatterns.get(id).get_ID()+"~"+SNPpatterns.get(id).get_count());
+				writer.println(SNPpatterns.get(id).to_print());
+				//System.out.println(SNPpatterns.get(id).get_ID()+"~"+SNPpatterns.get(id).get_count());
 			}
+			writer.close();
+			System.out.println("Output written to "+out_filename);
 		}catch (Exception e){
 			System.out.println("Error reading SAM file: " + e.toString());
 		}
@@ -60,7 +81,7 @@ class SAMobject{
 		}
 	}
 
-	private void parseAlignment(String [] alignment_fields){
+	private void parseAlignment(String [] alignment_fields, int lineCount){
 		String cigarString = alignment_fields[5];
 		if(cigarString.contains("M")){
 			//get all necessary info from alignemnt line 
@@ -151,7 +172,7 @@ class SAMobject{
 						for(int count=0; count<op_counts[op];count+=1){
 							if((position_in_reference >= reference.length()) || (position_in_sequence >= sequence.length())){
 								success=false;
-								System.out.println("ERROR:Alignment beyond length of reference or sequence");
+								System.out.println("ERROR:Alignment beyond length of reference or sequence. Line: "+lineCount);
 								break;
 							}	
 							if(reference.charAt(position_in_reference) != sequence.charAt(position_in_sequence))
@@ -173,8 +194,11 @@ class SAMobject{
 					case 'D':
 						position_in_reference += op_counts[op];
 						break;
+					case 'S':
+						position_in_sequence += op_counts[op];
+						break;
 					default:
-						System.out.println("New CIGARA operation: " + operations[op]+". Not dealt with");
+						System.out.println("New CIGAR operation: " + operations[op]+". Not dealt with");
 						
 					}
 				}
@@ -186,7 +210,10 @@ class SAMobject{
 				else{
 					SNPpatterns.put(pattern.get_ID(), pattern);
 				}
-				System.out.println("SNP pattern: "+pattern.get_ID());
+				//System.out.println("pos: "+ pos);
+				//System.out.println("Reference:\n"+reference);
+				//System.out.println("Sample: \n"+sequence);
+				//System.out.println("SNP pattern: "+pattern.get_ID());
 			}
 			
 		} 	

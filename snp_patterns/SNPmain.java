@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.util.Scanner;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.lang.System;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 class SNPmain{
@@ -17,20 +18,25 @@ class SNPmain{
 	public static void main(String [] args) throws IOException{
 		String database_file=null;
 		String SAM_file=null;
+		String outfile = null;
 		for(int i=0; i<args.length; ++i){
-			if(args[i].equals("-d")){
+			if(args[i].equals("-D")){
 				database_file = args[++i];
 			}
 			else if(args[i].equals("-S")){
 				SAM_file = args[++i];
 			}
+			else if(args[i].equals("-O")){
+				outfile=args[++i];
+			}
 		}
 		//TODO: FIX THIS MESSAGE
-		if(database_file==null || SAM_file==null){
+		if(database_file==null || SAM_file==null || outfile==null){
 			//TODO print and exit
-			System.out.println("Improper arguments\n SNPcounter -d <database_file> -S <sam_file>");				
+			System.out.println("Improper arguments\n java snp_pattern.SNPcounter -D <database_file> -S <sam_file> [-O <outfile>]");				
+			System.exit(-1);
+		
 		}
-	
 		HashMap<String, String> reference = make_ref_map(database_file);	
 		//debug print contents of database	
 		if(false){
@@ -38,7 +44,7 @@ class SNPmain{
 				System.out.println(entry.getKey()+ ": \n"+entry.getValue());
 			}
 		}
-		SAMobject sam_object = new SAMobject(SAM_file, reference);
+		SAMobject sam_object = new SAMobject(SAM_file, reference, outfile);
 		sam_object.parseSAMfile();
 
 		
@@ -46,7 +52,8 @@ class SNPmain{
 
 	public static HashMap<String, String> make_ref_map(String database_filename) throws IOException{
 
-		boolean DEBUG = true;
+		boolean DEBUG = false;
+		System.out.println("Readin in database");
 
 		final Charset ENCODING = StandardCharsets.UTF_8;
 		HashMap<String, String> reference_map = new HashMap<String, String>();

@@ -29,6 +29,17 @@ class SNPpattern{
 	public int get_count(){
 		return count;
 	}
+
+	public String to_print(){
+		String printString = reference_gene+"\t{";
+		for(int i=0; i<pattern.size(); ++i){
+			SNP snp = pattern.get(i);
+			printString = printString + snp.pos_in_ref+":";
+			printString = printString+snp.nucleotide_in_ref+"->"+snp.nucleotide_in_sequence+"; ";
+		}
+		printString = printString + "}\t"+count;
+		return printString;
+	}
 	
 	public String get_ID(){
 		String ID = reference_gene + ":";
